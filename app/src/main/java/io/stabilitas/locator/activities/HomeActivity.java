@@ -81,6 +81,7 @@ public class HomeActivity extends FragmentActivity {
 
         map.setOnCameraChangeListener(clusterManager);
         map.setMyLocationEnabled(true);
+        map.getUiSettings().setMyLocationButtonEnabled(true);
 
         if (locationManager == null) {
             locationManager = new LocationManager();
@@ -128,8 +129,9 @@ public class HomeActivity extends FragmentActivity {
 
     private void centerMap(Location location) {
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 17);
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 5);
         if (map != null) map.animateCamera(cameraUpdate);
+        locationManager.stopRequestLocation();
     }
 
 
