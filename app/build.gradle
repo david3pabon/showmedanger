@@ -1,0 +1,33 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
+
+    defaultConfig {
+        applicationId "io.stabilitas.locator"
+        minSdkVersion 15
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        debug {
+            buildConfigField "String", "REPORT_ENDPOINT", "\"https://s3.amazonaws.com/sv-tmp/E2737CE4-5648-11E4-BBC5-7BA8E5EFEEE8\""
+        }
+        release {
+            buildConfigField "String", "REPORT_ENDPOINT", "\"https://s3.amazonaws.com/sv-tmp/E2737CE4-5648-11E4-BBC5-7BA8E5EFEEE8\""
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'com.android.support:appcompat-v7:23.1.0'
+    compile 'com.google.android.gms:play-services:8.1.0'
+
+    compile 'com.squareup.okhttp:okhttp:2.5.0'
+    compile 'com.google.maps.android:android-maps-utils:0.4+'
+}
