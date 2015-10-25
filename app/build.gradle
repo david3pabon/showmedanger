@@ -30,4 +30,6 @@ dependencies {
 
     compile 'com.squareup.okhttp:okhttp:2.5.0'
     compile 'com.google.maps.android:android-maps-utils:0.4+'
+    compile 'io.reactivex:rxjava:1.0.10'
+    compile 'io.reactivex:rxandroid:0.25.0'
 }

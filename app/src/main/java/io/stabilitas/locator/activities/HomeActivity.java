@@ -1,9 +1,12 @@
 package io.stabilitas.locator.activities;
 
+import android.location.Location;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
@@ -13,11 +16,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.stabilitas.locator.R;
+import io.stabilitas.locator.location.LocationManager;
 import io.stabilitas.locator.model.MapItem;
 import io.stabilitas.locator.model.Report;
 import io.stabilitas.locator.networking.Callback;
 import io.stabilitas.locator.networking.NetworkError;
 import io.stabilitas.locator.networking.ReportsClient;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 
 public class HomeActivity extends FragmentActivity {
 
@@ -25,6 +32,10 @@ public class HomeActivity extends FragmentActivity {
     private final ReportsClient client = new ReportsClient();
     private List<Report> reports = new ArrayList<>();
     private ClusterManager<MapItem> clusterManager;
+
+    private LocationManager locationManager;
+    private Subscription subscription;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +48,22 @@ public class HomeActivity extends FragmentActivity {
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
+
+        subscription = locationManager
+                .getLocation()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(getOnSubscriber());
+        locationManager.startRequestLocation();
+    }
+
+    @Override
+    protected void onPause() {
+        locationManager.stopRequestLocation();
+        if (subscription != null) {
+            subscription.unsubscribe();
+        }
+
+        super.onPause();
     }
 
     private void setUpMapIfNeeded() {
@@ -51,7 +78,15 @@ public class HomeActivity extends FragmentActivity {
 
     private void setUpMap() {
         clusterManager = new ClusterManager<>(this, map);
+
         map.setOnCameraChangeListener(clusterManager);
+        map.setMyLocationEnabled(true);
+
+        if (locationManager == null) {
+            locationManager = new LocationManager();
+        }
+        locationManager.connect(this);
+
         getReports();
     }
 
@@ -74,12 +109,27 @@ public class HomeActivity extends FragmentActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                for (Report report: reports) {
+                for (Report report : reports) {
                     LatLng position = new LatLng(report.getLatitude(), report.getLongitud());
                     clusterManager.addItem(new MapItem(position));
                 }
             }
         });
+    }
+
+    private Action1<Location> getOnSubscriber() {
+        return new Action1<Location>() {
+            @Override
+            public void call(Location location) {
+                centerMap(location);
+            }
+        };
+    }
+
+    private void centerMap(Location location) {
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 17);
+        if (map != null) map.animateCamera(cameraUpdate);
     }
 
 
